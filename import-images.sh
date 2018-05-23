@@ -1,6 +1,5 @@
-VERSION="release-0.8-20180524-09-15"
-REPO="registry.k8s77.com:5000/library/istio/"
-cp ../istio-release-0.8-20180524-09-15/install/kubernetes/istio-demo.yaml .
+source ./env.sh
+cp ../istio-$VERSION/install/kubernetes/istio-demo.yaml .
 for line in $(<img-tars); 
 do 
   # docker load < $line;
