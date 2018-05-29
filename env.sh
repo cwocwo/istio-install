@@ -1,11 +1,11 @@
 
 
 ROOT_URL="https://gcsweb.istio.io/gcs/istio-prerelease/daily-build/"
-VERSION="release-0.8-20180524-09-15"
+VERSION="release-0.8-20180531-09-15"
 REPO="registry.k8s77.com:5000/library/istio/"
 
 # build dir
-BUILD_DIR="./build/"
+BUILD_DIR="./build-$VERSION/"
 
 # istio release package url
 RLEASE_PKG_URL=${ROOT_URL}istio-${VERSION}-linux.tar.gz
@@ -22,4 +22,5 @@ function create_dir_ifnotexist {
     echo "$1 already exists."
   fi
 }
+
 

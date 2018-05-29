@@ -27,8 +27,9 @@ for image_name in $(<${image_file});
     echo "--------------------------------------------------------------------------------"
     echo "pull image: $image_name ......"
     docker pull $image_name
-    image_name_local="${REPO}samples/bookinfo/$image_name"
+    image_name_local="${REPO}samples/$image_name"
     echo "docker tag $image_name $image_name_local"
+    docker tag $image_name $image_name_local
     docker push $image_name_local
     
     sed -i "s|image: ${image_name}|image: ${image_name_local}|g" $sample_dir/bookinfo.yaml
