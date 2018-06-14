@@ -25,14 +25,34 @@ istio_install_file="${BUILD_DIR}/istio-demo.yaml"
 image_name_index_file=${BUILD_DIR}images.txt
 grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
 
+# save images
+image_dir=${BUILD_DIR}images/
+create_dir_ifnotexist ${image_dir}
+
+# generate load image script
+load_images_script=${image_dir}load-image.sh
+cat "" > $load_images_script
+
 for image_name in $(<$image_name_index_file);
 do
+  
+  # pull images
   #docker pull $image_name
+  
+  export_image_name1=${image_name//\//-}
+  export_image_name=${export_image_name1/\:/-}.tar.gz
+  docker save -o $image_dir$export_image_name  $image_name
+  echo "docker load < $export_image_name"
+  echo "docker load < $export_image_name">>$load_images_script
+
+
   echo "tag and push image to local repo ......"
   image_name_local="$REPO$image_name"
+
   echo "docker tag $image_name $image_name_local"
-  docker tag $image_name $image_name_local
-  docker push $image_name_local
+  #docker tag $image_name $image_name_local
+  #docker push $image_name_local
+
   echo "replace image to local repo in istio install file"
   sed -i "s|${image_name}|${image_name_local}|g" $istio_install_file
 done
