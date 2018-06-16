@@ -28,7 +28,7 @@ for image_name in $(<${image_file});
 
     export_image_name1=${image_name//\//-}
     export_image_name=${export_image_name1/\:/-}.tar.gz
-    if [ ! -f $export_image_name ]; then docker save -o $image_dir$export_image_name $image_name; fi
+    if [ ! -f $image_dir$export_image_name ]; then docker save -o $image_dir$export_image_name $image_name; fi
     echo "Add script: docker load < $export_image_name"
     echo "docker load < $export_image_name">>$load_images_script
 
