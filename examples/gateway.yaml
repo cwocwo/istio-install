@@ -13,8 +13,8 @@ spec:
     hosts:
     - uk.bookinfo.com
     - eu.bookinfo.com
-    - iop77.com
-    - "*.iop77.com"
+    - iop11.com
+    - "*.iop11.com"
     tls:
       httpsRedirect: true # sends 302 redirect for http requests
   - port:
@@ -24,8 +24,8 @@ spec:
     hosts:
     - uk.bookinfo.com
     - eu.bookinfo.com
-    - iop77.com
-    - "*.iop77.com"
+    - iop11.com
+    - "*.iop11.com"
     tls:
       mode: SIMPLE #enables HTTPS on this port
       serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
