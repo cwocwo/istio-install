@@ -15,6 +15,7 @@ else
 fi
 
 echo "extract it --------------------------------------------------------------"
+
 tar -xzvf $release_pkg_path -C ${BUILD_DIR}
 
 # prepare k8s istio install file: istio-demo.yaml
@@ -37,21 +38,34 @@ for image_name in $(<$image_name_index_file);
 do
   
   # pull images
-  #docker pull $image_name
+  images_exists=$(docker images $image_name|wc -l)
+  echo $images_exists
+  if [ "$images_exists" -lt "2" ];then
+    docker pull $image_name
+  else
+    echo "image: $image_name already exists."
+  fi
   
   export_image_name1=${image_name//\//-}
   export_image_name=${export_image_name1/\:/-}.tar.gz
-  docker save -o $image_dir$export_image_name  $image_name
-  echo "docker load < $export_image_name"
+  export_image_path=$image_dir$export_image_name
+  if [ ! -f "$export_image_path" ];then
+    docker save -o $export_image_path  $image_name
+  else
+    echo "image file: $export_image_path already exists."
+  fi
+
+  echo "Add images load script: docker load < $export_image_name"
   echo "docker load < $export_image_name">>$load_images_script
 
 
-  echo "tag and push image to local repo ......"
+  echo "tag and push image:[$image_name] to local repo ......"
   image_name_local="$REPO$image_name"
 
-  echo "docker tag $image_name $image_name_local"
-  #docker tag $image_name $image_name_local
-  #docker push $image_name_local
+  echo "Tag $image_name to  $image_name_local"
+  docker tag $image_name $image_name_local
+  echo "Push image: [$image_name_local]"
+  docker push $image_name_local
 
   echo "replace image to local repo in istio install file"
   sed -i "s|${image_name}|${image_name_local}|g" $istio_install_file
