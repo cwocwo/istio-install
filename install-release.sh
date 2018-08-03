@@ -25,6 +25,7 @@ istio_install_file="${BUILD_DIR}/istio-demo.yaml"
 
 image_name_index_file=${BUILD_DIR}images.txt
 grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
+sed -i "s|gcr.io/istio-release|istio|g" $image_name_index_file
 
 # save images
 image_dir=${BUILD_DIR}images/
@@ -39,7 +40,6 @@ do
   
   # pull images
   images_exists=$(docker images $image_name|wc -l)
-  echo $images_exists
   if [ "$images_exists" -lt "2" ];then
     docker pull $image_name
   else
@@ -62,12 +62,18 @@ do
   echo "tag and push image:[$image_name] to local repo ......"
   image_name_local="$REPO$image_name"
 
-  echo "Tag $image_name to  $image_name_local"
-  docker tag $image_name $image_name_local
-  echo "Push image: [$image_name_local]"
-  docker push $image_name_local
+  images_exists=$(docker images $image_name_local|wc -l)
+  if [ "$images_exists" -lt "2" ];then
+    echo "Tag $image_name to  $image_name_local"
+    docker tag $image_name $image_name_local
+    echo "Push image: [$image_name_local]"
+    docker push $image_name_local
+  else
+    echo "image: $image_name_local already exists."
+  fi
 
-  echo "replace image to local repo in istio install file"
-  sed -i "s|${image_name}|${image_name_local}|g" $istio_install_file
+  image_origin_name=${image_name//istio/gcr.io\/istio-release}
+  echo "replace image:[$image_origin_name] to local repo:[$image_name_local] in istio install file"
+  sed -i "s|${image_origin_name}|${image_name_local}|g" $istio_install_file
 done
 
