@@ -2,7 +2,7 @@
 
 ROOT_URL="https://github.com/istio/istio/releases/download/"
 #https://github.com/istio/istio/releases/download/0.8.0/istio-0.8.0-linux.tar.gz
-VERSION="0.8.0"
+VERSION="1.0.0"
 REPO="registry.cluster11.com:5000/library/istio/"
 
 # build dir

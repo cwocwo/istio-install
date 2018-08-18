@@ -18,10 +18,10 @@ echo "extract it --------------------------------------------------------------"
 
 tar -xzvf $release_pkg_path -C ${BUILD_DIR}
 
+install_file_dir=${BUILD_DIR}istio-${VERSION}/install/kubernetes/
 # prepare k8s istio install file: istio-demo.yaml
-cp ${BUILD_DIR}istio-${VERSION}/install/kubernetes/istio-demo.yaml ${BUILD_DIR}
+cp ${install_file_dir}istio-demo.yaml ${BUILD_DIR}
 istio_install_file="${BUILD_DIR}/istio-demo.yaml"
-# grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print "docker pull " $2}'|sed 's/"//g'|sh
 
 image_name_index_file=${BUILD_DIR}images.txt
 grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
@@ -77,3 +77,12 @@ do
   sed -i "s|${image_origin_name}|${image_name_local}|g" $istio_install_file
 done
 
+# prepare istio helm install values.yaml
+helm_install_values_file="${install_file_dir}helm/istio/values.yaml"
+cp $helm_install_values_file ${install_file_dir}/helm/istio/values.yaml.bak
+sed -i "s|hub: docker.io/istio|hub: ${REPO}istio|g" $helm_install_values_file
+sed -i "s|hub: quay.io/coreos|hub: ${REPO}quay.io/coreos|g" $helm_install_values_file
+sed -i "s|hub: docker.io/prom|hub: ${REPO}docker.io/prom|g" $helm_install_values_file
+sed -i "s|hub: docker.io/jaegertracing|hub: ${REPO}docker.io/jaegertracing|g" $helm_install_values_file
+sed -i "s|hub: docker.io/kiali|hub: ${REPO}docker.io/kiali|g" $helm_install_values_file
+sed -i "s|hub: quay.io/jetstack|hub: ${REPO}quay.io/jetstack|g" $helm_install_values_file
