@@ -201,10 +201,6 @@ gateways:
       #requests:
       #  cpu: 1800m
       #  memory: 256Mi
-    gateway:
-      hosts:
-        - "xxx.cloud.inspur.com"
-        - "yyy.cloud.inspur.com"
     loadBalancerIP: ""
     externalIPs: 
     - "10.110.17.77"
