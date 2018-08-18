@@ -1,12 +1,12 @@
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: jaeger
+  name: baidu
 spec:
   hosts:
-  - "jaeger.10.110.20.11.xip.io"
+  - "baidu.10.110.20.11.xip.io"
   gateways:
-  - default
+  - iop-gateway
   http:
   - match:
     - uri:
@@ -15,6 +15,6 @@ spec:
       uri: /
     route:
     - destination:
-        host: tracing.istio-system.svc.cluster.local
+        host: www.baidu.com
         port:
           number: 80

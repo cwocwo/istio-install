@@ -1,0 +1,29 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  clusterName: ""
+  creationTimestamp: 2018-07-04T06:25:35Z
+  generation: 0
+  name: default
+  namespace: istio-system
+  resourceVersion: "6004805"
+  selfLink: /apis/networking.istio.io/v1alpha3/namespaces/istio-system/gateways/default
+  uid: 0f81d323-7f53-11e8-b9cb-005056b62668
+spec:
+  servers:
+  - hosts:
+    - '*.xip.io'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+  - hosts:
+    - '*.xip.io'
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      private_key: /etc/istio/ingressgateway-certs/tls.key
+      server_certificate: /etc/istio/ingressgateway-certs/tls.crt
