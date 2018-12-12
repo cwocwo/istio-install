@@ -25,8 +25,8 @@ istio_install_file="${BUILD_DIR}/istio-demo.yaml"
 
 image_name_index_file=${BUILD_DIR}images.txt
 grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
-sed -i "s|gcr.io/istio-release|istio|g" $image_name_index_file
-echo "kiali/kiali:istio-release-1.0" >> $image_name_index_file
+#sed -i "s|gcr.io/istio-release|istio|g" $image_name_index_file
+#echo "kiali/kiali:istio-release-1.0" >> $image_name_index_file
 
 # save images
 image_dir=${BUILD_DIR}images/
@@ -36,9 +36,23 @@ create_dir_ifnotexist ${image_dir}
 load_images_script=${image_dir}load-image.sh
 cat "" > $load_images_script
 
-for image_name in $(<$image_name_index_file);
+# prepare istio helm install values.yaml
+helm_install_values_file="${install_file_dir}helm/istio/values.yaml"
+cp $helm_install_values_file ${install_file_dir}/helm/istio/values.yaml.bak
+
+#all_images=$(<$image_name_index_file)" "$(grep -A 1 -E "/kiali|/jetstack" $helm_install_values_file|awk -F- '{print $1}'|awk '{print $2}'|awk -f hub_image.awk)
+all_images=$(<$image_name_index_file)" "$(grep -A 1 -E "/kiali|/jetstack" $helm_install_values_file|awk -F- '{print $1}'|awk '{print $2}'|awk -F/ '{print $1 "\n" $2}'|awk -f hub_image.awk)
+echo $all_images
+#for hub_image in $(grep -A 1 -E "/kiali|/jetstack" $helm_install_values_file|awk -F- '{print $1}'|awk '{print $2}'|awk -f hub_image.awk);
+#do
+#  echo "===================================================================================================================================="
+#  echo $hub_image
+#done
+
+for image_name in $all_images;
 do
-  
+  echo ""
+  echo "===================================================================================================================================="
   # pull images
   images_exists=$(docker images $image_name|wc -l)
   if [ "$images_exists" -lt "2" ];then
@@ -73,17 +87,23 @@ do
     echo "image: $image_name_local already exists."
   fi
 
-  image_origin_name=${image_name//istio/gcr.io\/istio-release}
+  #image_origin_name=${image_name//istio/gcr.io\/istio-release}
+  image_origin_name=$image_name
   echo "replace image:[$image_origin_name] to local repo:[$image_name_local] in istio install file"
   sed -i "s|${image_origin_name}|${image_name_local}|g" $istio_install_file
+  echo "------------------------------------------------------------------------------------------------------------------------------------"
 done
 
-# prepare istio helm install values.yaml
-helm_install_values_file="${install_file_dir}helm/istio/values.yaml"
-cp $helm_install_values_file ${install_file_dir}/helm/istio/values.yaml.bak
-sed -i "s|hub: docker.io/istio|hub: ${REPO}istio|g" $helm_install_values_file
-sed -i "s|hub: quay.io/coreos|hub: ${REPO}quay.io/coreos|g" $helm_install_values_file
-sed -i "s|hub: docker.io/prom|hub: ${REPO}docker.io/prom|g" $helm_install_values_file
-sed -i "s|hub: docker.io/jaegertracing|hub: ${REPO}docker.io/jaegertracing|g" $helm_install_values_file
-sed -i "s|hub: docker.io/kiali|hub: ${REPO}docker.io/kiali|g" $helm_install_values_file
-sed -i "s|hub: quay.io/jetstack|hub: ${REPO}quay.io/jetstack|g" $helm_install_values_file
+for hub in $(grep "hub:" $helm_install_values_file|awk '{print $2}');
+do
+  sed -i "s|hub: $hub|hub: ${REPO}$hub|g" $helm_install_values_file
+done
+
+
+
+#sed -i "s|hub: docker.io/istio|hub: ${REPO}istio|g" $helm_install_values_file
+#sed -i "s|hub: quay.io/coreos|hub: ${REPO}quay.io/coreos|g" $helm_install_values_file
+#sed -i "s|hub: docker.io/prom|hub: ${REPO}docker.io/prom|g" $helm_install_values_file
+#sed -i "s|hub: docker.io/jaegertracing|hub: ${REPO}docker.io/jaegertracing|g" $helm_install_values_file
+#sed -i "s|hub: docker.io/kiali|hub: ${REPO}docker.io/kiali|g" $helm_install_values_file
+#sed -i "s|hub: quay.io/jetstack|hub: ${REPO}quay.io/jetstack|g" $helm_install_values_file
