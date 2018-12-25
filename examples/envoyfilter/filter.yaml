@@ -1,0 +1,34 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: keycloak-user-filter
+  namespace: iam
+spec:
+  workloadLabels:
+    app: keycloak
+  filters:
+  - listenerMatch:
+      portNumber: 8080
+      listenerType: SIDECAR_INBOUND
+    filterName: envoy.lua
+    filterType: HTTP
+    filterConfig:
+      inlineCode: |
+        function envoy_on_request(request_handle)
+          request_handle:headers():add("request_body_size", request_handle:body():length())
+        end
+
+        function envoy_on_response(response_handle)
+          -- Wait for the entire response body and a response header with the the body size.
+          response_handle:headers():add("response_body_size", response_handle:body():length())
+          local origin = response_handle:headers():get("origin")
+          print(origin) 
+          cookies = response_handle:headers():get("set-cookie")
+          print(cookies)
+          if (origin == "https://iopdev.10.110.25.123.xip.io") 
+          then
+            response_handle:headers():add("xxxxxxxxx", "111")
+            
+            
+           
+        end
