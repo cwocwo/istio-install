@@ -94,6 +94,9 @@ do
   echo "------------------------------------------------------------------------------------------------------------------------------------"
 done
 
+# disable auto sidecar auto inject
+sed -i "s|policy: enabled|policy: disabled|g" $istio_install_file
+
 for hub in $(grep "hub:" $helm_install_values_file|awk '{print $2}');
 do
   sed -i "s|hub: $hub|hub: ${REPO}$hub|g" $helm_install_values_file
