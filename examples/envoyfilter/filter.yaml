@@ -8,27 +8,42 @@ spec:
     app: keycloak
   filters:
   - listenerMatch:
-      portNumber: 8080
+      portNamePrefix: http-keycloak
       listenerType: SIDECAR_INBOUND
     filterName: envoy.lua
     filterType: HTTP
     filterConfig:
       inlineCode: |
         function envoy_on_request(request_handle)
-          request_handle:headers():add("request_body_size", request_handle:body():length())
+          path = request_handle:headers():get(":path")
+          
+          authurl = "/auth/realms/master/login-actions/authenticate"
+          if( string.len(authurl) <= string.len(path) and  string.sub(path, 1, string.len(authurl)) == authurl) then
+            request_handle:logInfo("------------ filter users ---------------")
+            users = {"keycloak", "cloud-operator", "cks", "cicd", "iam", "iot", "rds", "csf", "lma", "cloud-oss", "hdinsight", "doc", "network", "console", "compute", "storage"}
+
+            -- cookies would be nil
+            cookies = request_handle:headers():get("cookie")
+            for chunk in request_handle:bodyChunks() do
+              request_handle:logInfo(0, chunk:length())
+            end
+ 
+            for i = 1, 15 do
+              request_handle:logInfo(users[i])
+              if(string.find(cookies,"username="..users[i]..";") >= 0) then
+                request_handle:logInfo(users[i].."  is not exists.")
+                request_handle:respond({[":status"] = "404", ["Content-Type"] = "text/plain", ["WWW-Authenticate"] = "Basic realm=inspur-iam"}, "authenticate: user "..users[i].." is not exists.")
+              end
+            end
+          end
+          -- origin = response_handle:headers():get("origin")
+          -- if (origin == "https://keycloak.10.110.25.114.xip.io") then
+          --   response_handle:headers():add("xxxxxxxxx", "111")
+          -- end
+
         end
 
         function envoy_on_response(response_handle)
           -- Wait for the entire response body and a response header with the the body size.
-          response_handle:headers():add("response_body_size", response_handle:body():length())
-          local origin = response_handle:headers():get("origin")
-          print(origin) 
-          cookies = response_handle:headers():get("set-cookie")
-          print(cookies)
-          if (origin == "https://iopdev.10.110.25.123.xip.io") 
-          then
-            response_handle:headers():add("xxxxxxxxx", "111")
-            
-            
-           
+          response_handle:headers():add("myname", "cww")
         end

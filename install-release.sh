@@ -54,7 +54,9 @@ do
   echo ""
   echo "===================================================================================================================================="
   # pull images
-  images_exists=$(docker images $image_name|wc -l)
+  echo "starting to pull image: $image_name"
+  trimed_image_name=$(echo ${image_name/docker.io\//}|awk -F: '{print $1}')
+  images_exists=$(docker images $trimed_image_name|wc -l)
   if [ "$images_exists" -lt "2" ];then
     docker pull $image_name
   else
@@ -96,6 +98,19 @@ done
 
 # disable auto sidecar auto inject
 sed -i "s|policy: enabled|policy: disabled|g" $istio_install_file
+sed -i "s|autoInject: enabled|autoInject: $sidecarAutoInject|g" $helm_install_values_file
+
+# set privileged
+# If set to true, istio-proxy container will have privileged securityContext
+sed -i "s|privileged: false|privileged: $privileged|g" $helm_install_values_file
+
+# set includeIPRanges
+sed -i "s|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"\*\"|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"$includeIPRanges\"|g" $istio_install_file
+sed -i "s|includeIPRanges: \"\*\"|includeIPRanges: \"$includeIPRanges\"|g" $helm_install_values_file
+
+# set ingressgateway service's externalTrafficPolicy
+sed -i "s|type: LoadBalancer|type: LoadBalancer\n  externalTrafficPolicy: $externalTrafficPolicy|g" $istio_install_file
+sed -i "s|# externalTrafficPolicy: Local|externalTrafficPolicy: $externalTrafficPolicy|g" $helm_install_values_file
 
 for hub in $(grep "hub:" $helm_install_values_file|awk '{print $2}');
 do
