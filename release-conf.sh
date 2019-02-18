@@ -17,6 +17,9 @@ sidecarAutoInject=disabled
 # If set to true, istio-proxy container will have privileged securityContext
 privileged=true
 
+# ImagePullSecrets for all ServiceAccount
+imagePullSecrets=service-registry
+
 # preserve client source ip in container  (Local or Cluster)
 externalTrafficPolicy=Local
 

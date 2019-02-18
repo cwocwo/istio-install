@@ -97,12 +97,15 @@ do
 done
 
 # disable auto sidecar auto inject
-sed -i "s|policy: enabled|policy: disabled|g" $istio_install_file
+sed -i "s|policy: enabled|policy: $sidecarAutoInject|g" $istio_install_file
 sed -i "s|autoInject: enabled|autoInject: $sidecarAutoInject|g" $helm_install_values_file
 
 # set privileged
 # If set to true, istio-proxy container will have privileged securityContext
+sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $istio_install_file
+helm_sidecar_injector_configmap_file="${install_file_dir}helm/istio/templates/sidecar-injector-configmap.yaml"
 sed -i "s|privileged: false|privileged: $privileged|g" $helm_install_values_file
+sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $helm_sidecar_injector_configmap_file
 
 # set includeIPRanges
 sed -i "s|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"\*\"|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"$includeIPRanges\"|g" $istio_install_file
@@ -111,6 +114,13 @@ sed -i "s|includeIPRanges: \"\*\"|includeIPRanges: \"$includeIPRanges\"|g" $helm
 # set ingressgateway service's externalTrafficPolicy
 sed -i "s|type: LoadBalancer|type: LoadBalancer\n  externalTrafficPolicy: $externalTrafficPolicy|g" $istio_install_file
 sed -i "s|# externalTrafficPolicy: Local|externalTrafficPolicy: $externalTrafficPolicy|g" $helm_install_values_file
+
+# ImagePullSecrets for all ServiceAccount, list of secrets in the same namespace
+# to use for pulling any images in pods that reference this ServiceAccount.
+# Must be set for any clustser configured with privte docker registry.
+# TODO  set istio-demo.yaml
+sed -i "s|imagePullSecrets:|imagePullSecrets:\n    - $imagePullSecrets|g" $helm_install_values_file
+
 
 for hub in $(grep "hub:" $helm_install_values_file|awk '{print $2}');
 do
