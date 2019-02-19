@@ -23,6 +23,9 @@ imagePullSecrets=service-registry
 # preserve client source ip in container  (Local or Cluster)
 externalTrafficPolicy=Local
 
+# set ingress-gateway externalIPs, split by ','
+externalIPs=10.110.25.114,10.110.25.108
+
 function create_dir_ifnotexist {
   if [ ! -d "$1" ];then
     mkdir -p $1

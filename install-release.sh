@@ -102,10 +102,11 @@ sed -i "s|autoInject: enabled|autoInject: $sidecarAutoInject|g" $helm_install_va
 
 # set privileged
 # If set to true, istio-proxy container will have privileged securityContext
-sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $istio_install_file
+# sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $istio_install_file
+sed -i ":begin; /        securityContext:/,/          capabilities:/ { /          capabilities:/! { $! { N; b begin }; }; s/securityContext.*capabilities:/securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:/; };" $istio_install_file
 helm_sidecar_injector_configmap_file="${install_file_dir}helm/istio/templates/sidecar-injector-configmap.yaml"
+sed -i ":begin; /        securityContext:/,/          capabilities:/ { /          capabilities:/! { $! { N; b begin }; }; s/securityContext.*capabilities:/securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:/; };" $helm_sidecar_injector_configmap_file
 sed -i "s|privileged: false|privileged: $privileged|g" $helm_install_values_file
-sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $helm_sidecar_injector_configmap_file
 
 # set includeIPRanges
 sed -i "s|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"\*\"|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"$includeIPRanges\"|g" $istio_install_file
@@ -121,6 +122,22 @@ sed -i "s|# externalTrafficPolicy: Local|externalTrafficPolicy: $externalTraffic
 # TODO  set istio-demo.yaml
 sed -i "s|imagePullSecrets:|imagePullSecrets:\n    - $imagePullSecrets|g" $helm_install_values_file
 
+# set ingress-gateway externalIPs
+ip_array=(${externalIPs//,/ })
+k8s_ips=""
+for ip in ${ip_array[@]}
+do
+  k8s_ips=${k8s_ips}"  - "${ip}\\n
+done
+sed -i "s|type: LoadBalancer|type: LoadBalancer\n  externalIPs:\n$k8s_ips|g" $istio_install_file
+
+
+helm_ips=""
+for ip in ${ip_array[@]}
+do
+  helm_ips=${helm_ips}"    - "${ip}\\n
+done
+sed -i "s|      istio: ingressgateway|      istio: ingressgateway\n    externalIPs:\n$helm_ips|g" $helm_install_values_file
 
 for hub in $(grep "hub:" $helm_install_values_file|awk '{print $2}');
 do
