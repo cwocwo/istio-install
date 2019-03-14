@@ -24,7 +24,7 @@ cp ${install_file_dir}istio-demo.yaml ${BUILD_DIR}
 istio_install_file="${BUILD_DIR}/istio-demo.yaml"
 
 image_name_index_file=${BUILD_DIR}images.txt
-grep "image:" $istio_install_file|grep -v ObjectMeta| awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
+grep "image:" $istio_install_file|grep -v ObjectMeta|sed 's/- //g'|awk '{print $2}' |sed 's/"//g'|sort|uniq > $image_name_index_file
 #sed -i "s|gcr.io/istio-release|istio|g" $image_name_index_file
 #echo "kiali/kiali:istio-release-1.0" >> $image_name_index_file
 
