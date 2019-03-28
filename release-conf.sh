@@ -24,7 +24,10 @@ imagePullSecrets=service-registry
 externalTrafficPolicy=Local
 
 # set ingress-gateway externalIPs, split by ','
-externalIPs=10.110.25.114,10.110.25.108
+externalIPs=10.110.25.114
+
+# set ingress-gateway's certs
+# TODO
 
 function create_dir_ifnotexist {
   if [ ! -d "$1" ];then

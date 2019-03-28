@@ -105,8 +105,8 @@ sed -i "s|autoInject: enabled|autoInject: $sidecarAutoInject|g" $helm_install_va
 # sed -i "s|securityContext:\n          capabilities:|securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:|g" $istio_install_file
 sed -i ":begin; /        securityContext:/,/          capabilities:/ { /          capabilities:/! { $! { N; b begin }; }; s/securityContext.*capabilities:/securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:/; };" $istio_install_file
 helm_sidecar_injector_configmap_file="${install_file_dir}helm/istio/templates/sidecar-injector-configmap.yaml"
-sed -i ":begin; /        securityContext:/,/          capabilities:/ { /          capabilities:/! { $! { N; b begin }; }; s/securityContext.*capabilities:/securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:/; };" $helm_sidecar_injector_configmap_file
 sed -i "s|privileged: false|privileged: $privileged|g" $helm_install_values_file
+sed -i ":begin; /        securityContext:/,/          privileged: true/ { /          privileged: true/! { $! { N; b begin }; }; s/securityContext.*privileged: true/securityContext:\n          runAsUser: 0\n          runAsNonRoot: false\n          capabilities:\n            add:\n            - NET_ADMIN\n          privileged: true/; };" $helm_sidecar_injector_configmap_file
 
 # set includeIPRanges
 sed -i "s|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"\*\"|\`traffic.sidecar.istio.io/includeOutboundIPRanges\`  \"$includeIPRanges\"|g" $istio_install_file

@@ -1,0 +1,29 @@
+
+apiVersion: networking.istio.io/v1alpha3
+kind: EnvoyFilter
+metadata:
+  name: keycloak-header-envoyfilter
+  namespace: iam
+spec:
+  filters:
+  - filterConfig:
+      inlineCode: |
+        function envoy_on_request(request_handle)
+          path = request_handle:headers():get(":path")
+          authority = request_handle:headers():get(":authority")
+          pattern = "/auth/realms/xxx"
+          if (string.sub(path, 1, string.len(pattern))==pattern and "auth1.domain.com"==authority) then
+            request_handle:headers():replace("x-forwarded-proto", "https")
+          end
+        end
+
+        function envoy_on_response(response_handle)
+          -- response_handle:headers():add("x-proxy-type", "proxy-envoy")
+        end
+    filterName: envoy.lua
+    filterType: HTTP
+    listenerMatch:
+      listenerType: SIDECAR_INBOUND
+  workloadLabels:
+    app: keycloak
+
